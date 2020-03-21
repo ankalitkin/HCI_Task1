@@ -9,10 +9,12 @@ import ru.vsu.cs.course2.hci.task1.chain.FilterChains;
 
 import javax.swing.*;
 import java.awt.*;
-
+import java.util.LinkedList;
 
 public class MainForm {
     private static final String FORM_TITLE = "Задание 1";
+    private static final int MIN_ACCEPTABLE_VALUE = 500;
+    private static final int MAX_ACCEPTABLE_VALUE = 1500;
     private JPanel rootPanel;
     private JPanel drawPanel;
     private JButton loadButton;
@@ -20,11 +22,16 @@ public class MainForm {
     private JButton alg2Button;
     private JButton alg3Button;
     private JCheckBox intermediateCheckBox;
+    private JButton monitorButton;
+    private JButton recordButton;
+    private JButton stopButton;
+    private JSpinner limitSpinner;
     private ChartPanel chartPanel;
 
     private double[] data;
+    private LinkedList<Integer> realtimeData;
     private String title;
-    private FilterChain currentFilterChain;
+    private FilterChain currentFilterChain = FilterChains.emptyFilterChain;
 
     private MainForm() {
         chartPanel = new ChartPanel(null);
@@ -38,6 +45,22 @@ public class MainForm {
         alg2Button.addActionListener(e -> displayChart(FilterChains.myFilterChain2));
         alg3Button.addActionListener(e -> displayChart(FilterChains.myFilterChain3));
         intermediateCheckBox.addActionListener(e -> displayChart());
+        monitorButton.addActionListener(e -> {
+            realtimeData = new LinkedList<>();
+            Realtime.INSTANCE.captureAudio(value -> {
+                System.out.println(value);
+                if (value <= MIN_ACCEPTABLE_VALUE || value >= MAX_ACCEPTABLE_VALUE)
+                    return;
+                realtimeData.addLast(value);
+                if (realtimeData.size() > (int) limitSpinner.getValue())
+                    realtimeData.removeFirst();
+                data = realtimeData.stream().mapToDouble(x -> x).toArray();
+                displayChart();
+            });
+        });
+        recordButton.setEnabled(false);
+        limitSpinner.setModel(new SpinnerNumberModel(100, 10, 1000, 1));
+        stopButton.addActionListener(e -> Realtime.INSTANCE.stopCapture());
     }
 
     public static void main(String[] args) {

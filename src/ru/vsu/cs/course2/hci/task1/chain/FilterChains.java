@@ -7,9 +7,10 @@ public class FilterChains {
 
     public static FilterChain myFilterChain1 = new FilterChain(
             //new MedianFilter(),
-            new SharpFilter(10),
-            new AbsoluteFilter(),
-            new LocalMaxFilter(7),
+            //new SharpFilter(10),
+            //new AbsoluteFilter(),
+            //new LocalMaxFilter(7),
+            new SmoothFilter(15),
             new ThresholdFilter(100)
     );
 
