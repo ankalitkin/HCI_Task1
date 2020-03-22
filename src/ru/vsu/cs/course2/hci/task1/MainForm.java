@@ -59,7 +59,7 @@ public class MainForm {
             });
         });
         recordButton.setEnabled(false);
-        limitSpinner.setModel(new SpinnerNumberModel(100, 10, 1000, 1));
+        limitSpinner.setModel(new SpinnerNumberModel(100, 10, 10000, 1));
         stopButton.addActionListener(e -> Realtime.INSTANCE.stopCapture());
     }
 
