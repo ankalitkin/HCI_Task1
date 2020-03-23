@@ -7,12 +7,11 @@ import java.util.function.Consumer;
 
 public class Realtime {
     private static final int SAMPLE_RATE = 48000;
-    private static final int IGNORANCE_DELAY = SAMPLE_RATE / 10;
-    private static final int WAITING_FOR_SECOND_DELAY = SAMPLE_RATE / 10 * 4;
-    private static final int THRESHOLD = 800;
+    private static final int IGNORANCE_DELAY = 20000;
+    private static final int BUFFER_SIZE = 1280;
+    public static int THRESHOLD = 800;
     public static Realtime INSTANCE = new Realtime();
     private TargetDataLine targetDataLine;
-    private Thread captureThread;
     private boolean stopCapture = true;
     private AudioFormat audioFormat;
 
@@ -30,14 +29,14 @@ public class Realtime {
     private Realtime() {
     }
 
-    public void captureAudio(Consumer<Integer> consumer) {
+    public void captureAudio(Consumer<Integer> consumer, Consumer<Integer> maxConsumer) {
         if (!stopCapture)
             return;
         try {
             targetDataLine.open(audioFormat);
             targetDataLine.start();
             stopCapture = false;
-            captureThread = new Thread(new CaptureThread(consumer));
+            Thread captureThread = new Thread(new CaptureThread(consumer, maxConsumer));
             captureThread.start();
         } catch (LineUnavailableException e) {
             e.printStackTrace();
@@ -54,41 +53,38 @@ public class Realtime {
 
     class CaptureThread extends Thread {
         private final Consumer<Integer> consumer;
-        private byte[] tempBuffer = new byte[128];
+        private final Consumer<Integer> maxConsumer;
+        private byte[] tempBuffer = new byte[BUFFER_SIZE];
 
-        CaptureThread(Consumer<Integer> consumer) {
+        CaptureThread(Consumer<Integer> consumer, Consumer<Integer> maxConsumer) {
             this.consumer = consumer;
+            this.maxConsumer = maxConsumer;
         }
 
         public void run() {
-            int ignoreCount = 0;
-            int waitingForSecond = 0;
             int sampleCount = 0;
             while (!stopCapture) {
                 int cnt = targetDataLine.read(tempBuffer, 0, tempBuffer.length);
                 if (cnt < 0) {
                     continue;
                 }
+                int max = 0;
                 for (int i = 0; i < tempBuffer.length - 1; i += 2) {
                     ByteBuffer bb = ByteBuffer.allocate(2);
                     bb.order(ByteOrder.LITTLE_ENDIAN);
                     bb.put(tempBuffer[i]);
                     bb.put(tempBuffer[i + 1]);
                     short shortVal = bb.getShort(0);
-                    waitingForSecond--;
-                    sampleCount++;
-                    if (ignoreCount-- <= 0 && Math.abs(shortVal) > THRESHOLD) {
-                        ignoreCount = IGNORANCE_DELAY;
-                        if (waitingForSecond <= 0) {
-                            waitingForSecond = WAITING_FOR_SECOND_DELAY;
-                            int result = sampleCount * 1000 / SAMPLE_RATE;
-                            consumer.accept(result); //В миллисекундах
-                            sampleCount = 0;
-                        } else {
-                            waitingForSecond = 0;
-                        }
+                    if (max < shortVal)
+                        max = shortVal;
+                    //System.out.println(shortVal);
+                    if (sampleCount++ >= IGNORANCE_DELAY && Math.abs(shortVal) > THRESHOLD) {
+                        int result = sampleCount * 1000 / SAMPLE_RATE;
+                        consumer.accept(result); //В миллисекундах
+                        sampleCount = 0;
                     }
                 }
+                maxConsumer.accept(max);
             }
         }
     }

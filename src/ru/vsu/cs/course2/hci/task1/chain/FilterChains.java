@@ -6,8 +6,9 @@ public class FilterChains {
     public static FilterChain emptyFilterChain = new FilterChain();
 
     public static FilterChain myFilterChain1 = new FilterChain(
-            new SmoothFilter(15),
-            new ThresholdFilter(725)
+            //new SmoothFilter(15),
+            //new ThresholdFilter(725)
+            new SharpFilter(15)
     );
 
     public static FilterChain myFilterChain2 = new FilterChain(

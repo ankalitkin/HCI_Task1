@@ -13,7 +13,7 @@ import java.util.LinkedList;
 
 public class MainForm {
     private static final String FORM_TITLE = "Задание 1";
-    private static final int MIN_ACCEPTABLE_VALUE = 500;
+    private static final int MIN_ACCEPTABLE_VALUE = 350;
     private static final int MAX_ACCEPTABLE_VALUE = 1500;
     private JPanel rootPanel;
     private JPanel drawPanel;
@@ -26,6 +26,9 @@ public class MainForm {
     private JButton recordButton;
     private JButton stopButton;
     private JSpinner limitSpinner;
+    private JProgressBar maxBar;
+    private JLabel maxLabel;
+    private JSpinner thresholdSpinner;
     private ChartPanel chartPanel;
 
     private double[] data;
@@ -47,20 +50,31 @@ public class MainForm {
         intermediateCheckBox.addActionListener(e -> displayChart());
         monitorButton.addActionListener(e -> {
             realtimeData = new LinkedList<>();
-            Realtime.INSTANCE.captureAudio(value -> {
-                System.out.println(value);
-                if (value <= MIN_ACCEPTABLE_VALUE || value >= MAX_ACCEPTABLE_VALUE)
-                    return;
-                realtimeData.addLast(value);
-                if (realtimeData.size() > (int) limitSpinner.getValue())
-                    realtimeData.removeFirst();
-                data = realtimeData.stream().mapToDouble(x -> x).toArray();
-                displayChart();
-            });
+            Realtime.INSTANCE.captureAudio(this::processValue, this::processMaxValue);
         });
         recordButton.setEnabled(false);
         limitSpinner.setModel(new SpinnerNumberModel(100, 10, 10000, 1));
+        SpinnerNumberModel thresholdModel = new SpinnerNumberModel(Realtime.THRESHOLD, 100, 10000, 1);
+        thresholdSpinner.setModel(thresholdModel);
+        thresholdModel.addChangeListener(e -> Realtime.THRESHOLD = (int) thresholdModel.getValue());
         stopButton.addActionListener(e -> Realtime.INSTANCE.stopCapture());
+        maxBar.setMaximum(Realtime.THRESHOLD);
+    }
+
+    private void processValue(Integer value) {
+        System.out.println(value);
+        if (value <= MIN_ACCEPTABLE_VALUE || value >= MAX_ACCEPTABLE_VALUE)
+            return;
+        realtimeData.addLast(value);
+        if (realtimeData.size() > (int) limitSpinner.getValue())
+            realtimeData.removeFirst();
+        data = realtimeData.stream().mapToDouble(x -> x).toArray();
+        displayChart();
+    }
+
+    private void processMaxValue(int maxValue) {
+        maxLabel.setText(String.format("%d/%d", maxValue, Realtime.THRESHOLD));
+        maxBar.setValue(maxValue);
     }
 
     public static void main(String[] args) {
