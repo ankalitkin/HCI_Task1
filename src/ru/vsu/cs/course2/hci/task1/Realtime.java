@@ -22,6 +22,8 @@ public class Realtime {
             targetDataLine = (TargetDataLine) AudioSystem.getLine(dataLineInfo);
         } catch (LineUnavailableException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("Мониторинг недоступен");
         }
 
     }
