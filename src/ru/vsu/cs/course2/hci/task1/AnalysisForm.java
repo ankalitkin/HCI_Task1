@@ -31,7 +31,7 @@ public class AnalysisForm {
         frame.setContentPane(rootPanel);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setMinimumSize(new Dimension(500, 400));
-        frame.setSize(1600, 700);
+        frame.setSize(1200, 700);
         frame.setVisible(true);
 
         this.chainBuilder = chainBuilder;

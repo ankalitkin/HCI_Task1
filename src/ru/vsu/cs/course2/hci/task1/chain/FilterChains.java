@@ -25,7 +25,7 @@ public class FilterChains {
                     new DeltaFilter(),
                     new AbsoluteFilter(),
                     new LocalMaxFilter(10),
-                    new ThresholdFilter((int) (250 * coef))
+                    new ThresholdFilter((int) (500 * coef))
             );
 }
 
