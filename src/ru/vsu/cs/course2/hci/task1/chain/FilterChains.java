@@ -9,7 +9,6 @@ public class FilterChains {
     public static ChainBuilder chain1Builder = coef ->
             new FilterChain(
                     new SmoothFilter(15),
-                    //new SharpFilter(15),
                     new ThresholdFilter(500 + (int) (1000 * coef))
             );
 
@@ -26,7 +25,7 @@ public class FilterChains {
                     new DeltaFilter(),
                     new AbsoluteFilter(),
                     new LocalMaxFilter(10),
-                    new ThresholdFilter(100)
+                    new ThresholdFilter((int) (250 * coef))
             );
 }
 

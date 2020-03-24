@@ -10,8 +10,6 @@ import ru.vsu.cs.course2.hci.task1.chain.FilterChains;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.LinkedList;
 
 public class MainForm {
@@ -59,7 +57,7 @@ public class MainForm {
         });
         recordButton.setEnabled(false);
         limitSpinner.setModel(new SpinnerNumberModel(100, 10, 10000, 1));
-        SpinnerNumberModel coefModel = new SpinnerNumberModel(0.5, 0, 1, 0.01);
+        SpinnerNumberModel coefModel = new SpinnerNumberModel(0.5, 0, 1, 0.001);
         coefModel.addChangeListener(e -> displayChart());
         coefSpinner.setModel(coefModel);
         SpinnerNumberModel thresholdModel = new SpinnerNumberModel(Realtime.THRESHOLD, 100, 10000, 1);

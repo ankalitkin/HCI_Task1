@@ -16,12 +16,10 @@ public class AnalysisForm {
     private static int left;
     private static int right;
     private ChartPanel sensChartPanel;
-    private ChartPanel specChartPanel;
     private ChartPanel rocChartPanel;
     private JPanel rootPanel;
     private JSpinner leftSpinner;
     private JPanel sensPanel;
-    private JPanel specPanel;
     private JPanel rocPanel;
     private JSpinner rightSpinner;
     private JButton updateButton;
@@ -38,12 +36,10 @@ public class AnalysisForm {
 
         this.chainBuilder = chainBuilder;
         this.data = data;
+
         sensChartPanel = new ChartPanel(null);
         sensPanel.setLayout(new GridLayout());
         sensPanel.add(sensChartPanel);
-        specChartPanel = new ChartPanel(null);
-        specPanel.setLayout(new GridLayout());
-        specPanel.add(specChartPanel);
         rocChartPanel = new ChartPanel(null);
         rocPanel.setLayout(new GridLayout());
         rocPanel.add(rocChartPanel);
@@ -64,20 +60,17 @@ public class AnalysisForm {
     private void update() {
         if (data == null)
             return;
-        AtomicReference<DefaultXYDataset> sensDataset = new AtomicReference<>();
-        AtomicReference<DefaultXYDataset> specDataset = new AtomicReference<>();
+        AtomicReference<DefaultXYDataset> sensSpecDataset = new AtomicReference<>();
         AtomicReference<DefaultXYDataset> rocDataset = new AtomicReference<>();
 
         left = (int) leftSpinner.getValue();
         right = (int) rightSpinner.getValue();
-        Stats.getStat(chainBuilder.get(), data.get(), left, right, sensDataset, specDataset, rocDataset);
+        Stats.getStat(chainBuilder.get(), data.get(), left, right, sensSpecDataset, rocDataset);
 
-        JFreeChart sensChart = ChartFactory.createXYLineChart("Чувствительность", "Пороговое значение", "Доля истинно положительных результатов", sensDataset.get());
-        JFreeChart specChart = ChartFactory.createXYLineChart("Специфичность", "Частота", "Доля истинно отрицательных результатов", specDataset.get());
+        JFreeChart sensChart = ChartFactory.createXYLineChart("Чувствительность/Специфичность", "Пороговое значение", "Чувствительность/Специфичность", sensSpecDataset.get());
         JFreeChart rocChart = ChartFactory.createXYLineChart("ROC-кривая", "Доля ложноположительных результатов", "Чувствительность", rocDataset.get());
 
         sensChartPanel.setChart(sensChart);
-        specChartPanel.setChart(specChart);
         rocChartPanel.setChart(rocChart);
     }
 }
