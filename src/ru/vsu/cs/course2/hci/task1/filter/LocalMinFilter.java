@@ -17,7 +17,7 @@ public class LocalMinFilter implements Filter {
         double[] res = new double[source.length];
         for (int i = 0; i < source.length; i++) {
             int start = Math.max(0, i - width);
-            int end = Math.min(i + width + 1, source.length);
+            int end = i;
             double min = source[start];
             for (int j = start + 1; j < end; j++) {
                 if (source[j] < min) {

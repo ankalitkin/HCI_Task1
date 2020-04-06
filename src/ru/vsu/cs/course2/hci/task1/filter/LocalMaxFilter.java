@@ -17,7 +17,7 @@ public class LocalMaxFilter implements Filter {
         double[] res = new double[source.length];
         for (int i = 0; i < source.length; i++) {
             int start = Math.max(0, i - width);
-            int end = Math.min(i + width + 1, source.length);
+            int end = i;
             double max = 0;
             for (int j = start; j < end; j++) {
                 if (source[j] > max) {

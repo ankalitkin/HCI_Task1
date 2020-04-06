@@ -17,10 +17,9 @@ public class SmoothFilter implements Filter {
         double[] res = new double[source.length];
         for (int i = 0; i < source.length; i++) {
             int start = Math.max(0, i - smoothLevel);
-            int end = Math.min(i + smoothLevel, source.length);
-            int count = end - start;
+            int count = i - start;
             int sum = 0;
-            for (int j = start; j < end; j++) {
+            for (int j = start; j < i; j++) {
                 sum += source[j];
             }
             res[i] = sum / (double) count;

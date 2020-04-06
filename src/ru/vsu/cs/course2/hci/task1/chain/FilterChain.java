@@ -5,7 +5,6 @@ import ru.vsu.cs.course2.hci.task1.Util;
 import ru.vsu.cs.course2.hci.task1.filter.Filter;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class FilterChain {
     private final Filter[] filters;

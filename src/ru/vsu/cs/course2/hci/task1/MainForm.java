@@ -14,8 +14,6 @@ import java.util.LinkedList;
 
 public class MainForm {
     private static final String FORM_TITLE = "Задание 1";
-    private static final int MIN_ACCEPTABLE_VALUE = 350;
-    private static final int MAX_ACCEPTABLE_VALUE = 1500;
     private JPanel rootPanel;
     private JPanel drawPanel;
     private JButton loadButton;
@@ -24,12 +22,8 @@ public class MainForm {
     private JButton alg3Button;
     private JCheckBox intermediateCheckBox;
     private JButton monitorButton;
-    private JButton recordButton;
     private JButton stopButton;
     private JSpinner limitSpinner;
-    private JProgressBar maxBar;
-    private JLabel maxLabel;
-    private JSpinner thresholdSpinner;
     private JSpinner coefSpinner;
     private JButton analysisButton;
     private ChartPanel chartPanel;
@@ -38,6 +32,7 @@ public class MainForm {
     private LinkedList<Integer> realtimeData;
     private String title;
     private ChainBuilder currentChainBuilder = FilterChains.emptyChainBuilder;
+    private Process provider;
 
     private MainForm() {
         chartPanel = new ChartPanel(null);
@@ -53,35 +48,24 @@ public class MainForm {
         intermediateCheckBox.addActionListener(e -> displayChart());
         monitorButton.addActionListener(e -> {
             realtimeData = new LinkedList<>();
-            Realtime.INSTANCE.captureAudio(this::processValue, this::processMaxValue);
+            Realtime.INSTANCE.startCapture(this::processValue);
         });
-        recordButton.setEnabled(false);
+        stopButton.addActionListener(e -> Realtime.INSTANCE.stopCapture());
         limitSpinner.setModel(new SpinnerNumberModel(100, 10, 10000, 1));
         SpinnerNumberModel coefModel = new SpinnerNumberModel(0.5, 0, 1, 0.001);
         coefModel.addChangeListener(e -> displayChart());
         coefSpinner.setModel(coefModel);
-        SpinnerNumberModel thresholdModel = new SpinnerNumberModel(Realtime.THRESHOLD, 100, 10000, 1);
-        thresholdSpinner.setModel(thresholdModel);
-        thresholdModel.addChangeListener(e -> Realtime.THRESHOLD = (int) thresholdModel.getValue());
-        stopButton.addActionListener(e -> Realtime.INSTANCE.stopCapture());
-        maxBar.setMaximum(Realtime.THRESHOLD);
         analysisButton.addActionListener(e -> new AnalysisForm(() -> currentChainBuilder, () -> data));
     }
 
     private void processValue(Integer value) {
-        System.out.println(value);
-        if (value <= MIN_ACCEPTABLE_VALUE || value >= MAX_ACCEPTABLE_VALUE)
+        if (value < 420)
             return;
         realtimeData.addLast(value);
         while (realtimeData.size() > (int) limitSpinner.getValue())
             realtimeData.removeFirst();
         data = realtimeData.stream().mapToDouble(x -> x).toArray();
         displayChart();
-    }
-
-    private void processMaxValue(int maxValue) {
-        maxLabel.setText(String.format("%d/%d", maxValue, Realtime.THRESHOLD));
-        maxBar.setValue(maxValue);
     }
 
     public static void main(String[] args) {
@@ -104,7 +88,17 @@ public class MainForm {
         if (filename == null)
             return;
         title = Util.getTitle(filename);
-        data = Util.readFile(filename);
+        if (filename.endsWith(".exe") || filename.endsWith(".com")) {
+            provider = Util.startProvider(filename);
+            monitorButton.doClick();
+        } else {
+            Realtime.INSTANCE.stopCapture();
+            if (provider != null) {
+                provider.destroy();
+                provider = null;
+            }
+            data = Util.readFile(filename);
+        }
     }
 
     private void displayChart(ChainBuilder chainBuilder) {

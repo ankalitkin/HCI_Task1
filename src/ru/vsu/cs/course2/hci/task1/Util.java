@@ -3,9 +3,12 @@ package ru.vsu.cs.course2.hci.task1;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
@@ -29,8 +32,29 @@ public class Util {
         try {
             Path path = Paths.get(filename);
             Stream<String> lines = Files.lines(path);
-            return lines.skip(1).mapToDouble(Double::parseDouble).toArray();
+            return lines.map(s -> {
+                try {
+                    return Double.parseDouble(s);
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            })
+                    .filter(Objects::nonNull)
+                    .mapToDouble(x -> x)
+                    .toArray();
         } catch (IOException e) {
+            return null;
+        }
+    }
+
+    public static Process startProvider(String filename) {
+        try {
+            Process process = new ProcessBuilder(filename).start();
+            InputStream inputStream = process.getInputStream();
+            System.setIn(inputStream);
+            return process;
+        } catch (IOException e) {
+            e.printStackTrace();
             return null;
         }
     }
@@ -46,5 +70,4 @@ public class Util {
     public static double[] generateXAxis(int length) {
         return DoubleStream.iterate(1, n -> n + 1).limit(length).toArray();
     }
-
 }
