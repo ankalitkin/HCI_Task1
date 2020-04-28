@@ -26,7 +26,7 @@ public class FilterChain {
         return dataset;
     }
 
-    public void getStat(double[] data, int trueStart, int trueEnd, AtomicInteger truePositive, AtomicInteger trueNegative) {
+    public void getStat(double[] data, Boolean[] orig, AtomicInteger truePositive, AtomicInteger trueNegative) {
         double[] res = data;
         for (Filter filter : filters) {
             res = filter.doFilter(res);
@@ -34,9 +34,11 @@ public class FilterChain {
         int truePos = 0;
         int trueNeg = 0;
         for (int i = 0; i < res.length; i++) {
-            if (res[i] == 0 && i >= trueStart && i <= trueEnd)
+            if (orig[i] == null)
+                continue;
+            if (res[i] > 0 && orig[i])
                 truePos++;
-            if (res[i] > 0 && (i < trueStart || i > trueEnd))
+            if (res[i] == 0 && !orig[i])
                 trueNeg++;
         }
         truePositive.set(truePos);

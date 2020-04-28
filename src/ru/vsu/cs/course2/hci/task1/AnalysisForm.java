@@ -21,8 +21,11 @@ public class AnalysisForm {
     private JSpinner leftSpinner;
     private JPanel sensPanel;
     private JPanel rocPanel;
-    private JSpinner rightSpinner;
+    private JTextArea infoTextArea;
     private JButton updateButton;
+    private JSpinner rightSpinner;
+    private JCheckBox a5kHzCheckBox;
+    private JTextArea classTextArea;
     private Supplier<ChainBuilder> chainBuilder;
     private Supplier<double[]> data;
 
@@ -31,7 +34,7 @@ public class AnalysisForm {
         frame.setContentPane(rootPanel);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setMinimumSize(new Dimension(500, 400));
-        frame.setSize(1200, 700);
+        frame.setSize(1500, 700);
         frame.setVisible(true);
 
         this.chainBuilder = chainBuilder;
@@ -45,16 +48,14 @@ public class AnalysisForm {
         rocPanel.add(rocChartPanel);
 
         int length = data != null ? data.get().length : 1;
-        SpinnerNumberModel leftModel = new SpinnerNumberModel(Math.min(Math.max(1, left), length), 1, length, 1);
+        SpinnerNumberModel leftModel = new SpinnerNumberModel(1, 1, length, 1);
         leftSpinner.setModel(leftModel);
-        leftModel.addChangeListener(e -> update());
 
-        SpinnerNumberModel rightModel = new SpinnerNumberModel(Math.min(Math.max(1, right), length), 1, length, 1);
+        SpinnerNumberModel rightModel = new SpinnerNumberModel(length, 1, length, 1);
         rightSpinner.setModel(rightModel);
         rightModel.addChangeListener(e -> update());
 
         updateButton.addActionListener(e -> update());
-        update();
     }
 
     private void update() {
@@ -65,7 +66,12 @@ public class AnalysisForm {
 
         left = (int) leftSpinner.getValue();
         right = (int) rightSpinner.getValue();
-        Stats.getStat(chainBuilder.get(), data.get(), left, right, sensSpecDataset, rocDataset);
+        Boolean[] orig = Stats.getIntervals(data.get().length, left - 1, right - 1, infoTextArea.getText(), a5kHzCheckBox.isSelected() ? 5 : 1);
+        AtomicReference<Double> sensRef = new AtomicReference<>();
+        AtomicReference<Double> specRef = new AtomicReference<>();
+        AtomicReference<Double> thresRef = new AtomicReference<>();
+        Stats.getStat(chainBuilder.get(), data.get(), orig, sensSpecDataset, rocDataset, sensRef, specRef, thresRef);
+        classTextArea.setText(String.format("Пороговое значение: %3f \r\nЧувствительность: %3f \r\nСпецифичность: %3f", thresRef.get(), sensRef.get(), specRef.get()));
 
         JFreeChart sensChart = ChartFactory.createXYLineChart("Чувствительность/Специфичность", "Пороговое значение", "Чувствительность/Специфичность", sensSpecDataset.get());
         JFreeChart rocChart = ChartFactory.createXYLineChart("ROC-кривая", "Доля ложноположительных результатов", "Чувствительность", rocDataset.get());

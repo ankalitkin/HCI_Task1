@@ -9,7 +9,7 @@ public class FilterChains {
     public static ChainBuilder chain1Builder = coef ->
             new FilterChain(
                     new SmoothFilter(15),
-                    new ThresholdFilter(500 + (int) (1000 * coef))
+                    new ThresholdFilter(350 + (int) (1000 * coef))
             );
 
 
@@ -26,6 +26,12 @@ public class FilterChains {
                     new AbsoluteFilter(),
                     new LocalMaxFilter(10),
                     new ThresholdFilter((int) (500 * coef))
+            );
+
+    public static ChainBuilder cardioChainBuilder = coef ->
+            new FilterChain(
+                    new DiameterFilter(100),
+                    new ThresholdFilter((int) (10000 * coef))
             );
 }
 
