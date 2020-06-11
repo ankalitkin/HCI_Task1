@@ -30,8 +30,8 @@ public class FilterChains {
 
     public static ChainBuilder cardioChainBuilder = coef ->
             new FilterChain(
-                    new DiameterFilter(100),
-                    new ThresholdFilter((int) (10000 * coef))
+                    new DiameterFilter(3)
+//                    new ThresholdFilter((int) (10000 * coef))
             );
 }
 

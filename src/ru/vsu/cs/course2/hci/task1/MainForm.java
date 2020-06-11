@@ -3,7 +3,6 @@ package ru.vsu.cs.course2.hci.task1;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.data.xy.DefaultXYDataset;
 import ru.vsu.cs.course2.hci.task1.chain.ChainBuilder;
@@ -16,6 +15,7 @@ import java.util.LinkedList;
 
 public class MainForm {
     private static final String FORM_TITLE = "Задание 1";
+    public static final int FPS = 30;
     private JPanel rootPanel;
     private JPanel drawPanel;
     private JButton loadButton;
@@ -30,6 +30,7 @@ public class MainForm {
     private JButton analysisButton;
     private JButton noneButton;
     private JButton cardioButton;
+    private JCheckBox fastCheckBox;
     private ChartPanel chartPanel;
 
     private double[] data;
@@ -37,6 +38,9 @@ public class MainForm {
     private String title;
     private ChainBuilder currentChainBuilder = FilterChains.emptyChainBuilder;
     private Process provider;
+    private int fastModeCounter = 0;
+    private int fastModeCounter2 = 0;
+    private long lastPaintMillis = 0;
 
     private MainForm() {
         chartPanel = new ChartPanel(null);
@@ -57,11 +61,12 @@ public class MainForm {
             Realtime.INSTANCE.startCapture(this::processValue);
         });
         stopButton.addActionListener(e -> Realtime.INSTANCE.stopCapture());
-        limitSpinner.setModel(new SpinnerNumberModel(1000, 10, 1000000, 1));
+        limitSpinner.setModel(new SpinnerNumberModel(5000, 10, 1000000, 1));
         SpinnerNumberModel coefModel = new SpinnerNumberModel(0.5, 0, 1, 0.001);
         coefModel.addChangeListener(e -> displayChart());
         coefSpinner.setModel(coefModel);
         analysisButton.addActionListener(e -> new AnalysisForm(() -> currentChainBuilder, () -> data));
+        fastCheckBox.setSelected(true);
     }
 
     public static void main(String[] args) {
@@ -82,11 +87,20 @@ public class MainForm {
     private void processValue(Integer value) {
 //        if (value < 420)
 //            return;
+        if (fastCheckBox.isSelected() && (fastModeCounter = (fastModeCounter + 1) % 5) != 0) {
+            return;
+        }
         realtimeData.addLast(value);
         while (realtimeData.size() > (int) limitSpinner.getValue())
             realtimeData.removeFirst();
         data = realtimeData.stream().mapToDouble(x -> x).toArray();
-        //displayChart();
+        if (fastCheckBox.isSelected()) {
+            long newTime = System.currentTimeMillis();
+            if (newTime - lastPaintMillis < 1000 / FPS)
+                return;
+        }
+        displayChart();
+        lastPaintMillis = System.currentTimeMillis();
     }
 
     private void loadData() {

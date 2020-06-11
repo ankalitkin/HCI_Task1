@@ -1,5 +1,7 @@
 package ru.vsu.cs.course2.hci.task1.filter;
 
+import java.util.LinkedList;
+
 public class LocalMaxFilter implements Filter {
     private final int width;
 
@@ -15,16 +17,13 @@ public class LocalMaxFilter implements Filter {
     @Override
     public double[] doFilter(double[] source) {
         double[] res = new double[source.length];
+        LinkedList<Double> buffer = new LinkedList<>();
         for (int i = 0; i < source.length; i++) {
-            int start = Math.max(0, i - width);
-            int end = i;
-            double max = 0;
-            for (int j = start; j < end; j++) {
-                if (source[j] > max) {
-                    max = source[j];
-                }
+            if (buffer.size() == width) {
+                buffer.removeFirst();
             }
-            res[i] = max;
+            buffer.addLast(source[i]);
+            res[i] = buffer.stream().max(Double::compareTo).get();
         }
         return res;
     }
